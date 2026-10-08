@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SOUTHYAI — Confirm Payment</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; }
+  label { display: block; margin-top: 14px; font-weight: 600; }
+  input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+  button { margin-top: 20px; padding: 10px 16px; background: #111; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+  #result { margin-top: 16px; padding: 12px; border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; } td, th { text-align: left; padding: 6px 4px; border-bottom: 1px solid #ddd; }
+  .ok { background: #d7f9d7; }
+  .err { background: #ffd7d7; }
+</style>
+</head>
+<body>
+  <p style="font-size:13px"><a href="admin-contributors.html">Contributors admin: review recordings, payouts, referrals →</a></p>
+  <h2>Confirm a payment</h2>
+  <p>Only use this once you've actually seen the PayShap/Capitec payment land.</p>
+
+  <label>Admin key</label>
+  <input type="password" id="adminKey" placeholder="your ADMIN_SECRET">
+
+  <label>Voice</label>
+  <select id="voiceSelect"><option>Loading voices...</option></select>
+
+  <label>Customer email</label>
+  <input type="email" id="customerEmail" placeholder="customer@example.com">
+
+  <label>Payment reference (what they used on PayShap)</label>
+  <input type="text" id="paymentRef" placeholder="e.g. their email or order id">
+
+  <button onclick="confirmPayment()">Confirm payment & send PIN</button>
+
+  <div id="result"></div>
+
+  <h3 style="margin-top:32px">Confirmed payments</h3>
+  <div id="sales" style="font-size:13px">Enter your admin key to see recent sales.</div>
+
+<script>
+  const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const result = document.getElementById('result');
+
+  fetch('/api/voices')
+    .then(r => r.json())
+    .then(data => {
+      const voices = Array.isArray(data) ? data : (data.voices || []);
+      const sel = document.getElementById('voiceSelect');
+      sel.innerHTML = voices.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (${esc(v.language)}) — R${((v.price_cents || 0) / 100).toFixed(2)}</option>`).join('')
+        || '<option value="">No voices yet. Run seed_voices.sql</option>';
+    })
+    .catch(() => { document.getElementById('voiceSelect').innerHTML = '<option value="">Could not load voices</option>'; });
+
+  async function api(path, opts = {}) {
+    const adminKey = document.getElementById('adminKey').value;
+    const r = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey } });
+    let data = null;
+    try { data = await r.json(); } catch (e) {}
+    if (!r.ok) throw new Error((data && data.error) || 'Request failed (' + r.status + ')');
+    return data;
+  }
+
+  async function confirmPayment() {
+    const voice_id = document.getElementById('voiceSelect').value;
+    const customer_email = document.getElementById('customerEmail').value.trim();
+    const payment_reference = document.getElementById('paymentRef').value.trim();
+    const btn = document.querySelector('button');
+
+    if (!document.getElementById('adminKey').value || !voice_id || !customer_email) {
+      result.className = 'err';
+      result.textContent = 'fill in admin key, voice, and customer email first';
+      return;
+    }
+    btn.disabled = true;
+    result.className = '';
+    result.textContent = 'sending...';
+    try {
+      const d = await api('/api/admin/confirm-payment', { method: 'POST', body: JSON.stringify({ voice_id, customer_email, payment_reference }) });
+      result.className = d.emailed ? 'ok' : 'err';
+      result.innerHTML = d.emailed
+        ? `done! PIN emailed to customer. (PIN was: <b>${esc(d.pin)}</b>)`
+        : `PIN created: <b>${esc(d.pin)}</b><br>${esc(d.warning || 'Email was not sent. Send this PIN to the customer yourself.')}`;
+      loadSales();
+    } catch (err) {
+      result.className = 'err';
+      result.textContent = 'error: ' + err.message;
+    }
+    btn.disabled = false;
+  }
+
+  async function loadSales() {
+    const box = document.getElementById('sales');
+    try {
+      const rows = await api('/api/admin/licenses');
+      box.innerHTML = rows.length ? '<table><tr><th>Voice</th><th>Customer</th><th>Ref</th><th>Used?</th></tr>' +
+        rows.map(x => `<tr><td>${esc(x.voice_name || x.voice_id)}</td><td>${esc(x.customer_email)}</td><td>${esc(x.payment_ref)}</td><td>${x.used_at ? 'yes' : 'not yet'}</td></tr>`).join('') + '</table>' : 'No confirmed payments yet.';
+    } catch (e) { box.textContent = ''; }
+  }
+  document.getElementById('adminKey').addEventListener('change', loadSales);
+</script>
+</body>
+</html>

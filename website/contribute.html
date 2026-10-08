@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earn with your voice | SouthyAI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:Inter,sans-serif;background:#F8F5FF}button:disabled{opacity:.5;cursor:not-allowed}input:focus,select:focus{outline:2px solid #A85CF7}</style></head>
+<body class="text-[#0A1931]">
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-[#E8E0FF] h-[64px] flex items-center"><div class="max-w-[1100px] mx-auto w-full px-6 flex items-center justify-between"><a href="index.html" class="flex items-center gap-3"><div class="w-8 h-8 bg-[#0A1931] rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div><span class="font-bold tracking-tight">SOUTHYAI</span></a><nav class="flex items-center gap-5 text-[14px] font-medium"><a href="index.html" class="text-[#6B7280] hover:text-[#0A1931]">Home</a><a href="voice-api.html" class="text-[#6B7280] hover:text-[#0A1931]">Voice API</a><a href="contribute.html" class="bg-[#0A1931] text-white px-4 py-2 rounded-full">Earn with your voice</a></nav></div></header>
+<main class="max-w-[1100px] mx-auto px-6 py-12">
+
+<!-- JOIN / LOGIN -->
+<section id="auth" hidden>
+  <h1 class="text-[40px] md:text-[52px] font-bold leading-[1] tracking-tight">Get paid to record your <span class="text-[#A85CF7]">South African voice.</span></h1>
+  <p class="mt-4 text-[16px] text-[#6B7280] max-w-[640px]">Read short scripts in your language, we review them, and approved recordings are paid out via PayPal. Join, then contact our team for your induction and freelancer contract before you start earning.</p>
+  <div class="mt-8 grid md:grid-cols-2 gap-6">
+    <form id="joinForm" class="bg-white border border-[#E8E0FF] rounded-[16px] p-6 space-y-3">
+      <h2 class="font-bold text-[20px]">Join</h2>
+      <input id="j_name" placeholder="Full name" autocomplete="name" class="w-full border border-[#E8E0FF] rounded-lg p-3" required>
+      <input id="j_email" type="email" placeholder="Email" autocomplete="email" class="w-full border border-[#E8E0FF] rounded-lg p-3" required>
+      <input id="j_paypal" type="email" placeholder="PayPal email (where we pay you)" class="w-full border border-[#E8E0FF] rounded-lg p-3" required>
+      <input id="j_pw" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" class="w-full border border-[#E8E0FF] rounded-lg p-3" required>
+      <div><p class="text-[13px] font-semibold mb-2">Languages you speak</p><div id="j_langs" class="flex flex-wrap gap-2"></div></div>
+      <label class="flex gap-2 text-[12.5px] text-[#6B7280] leading-snug"><input id="j_consent" type="checkbox" class="mt-1">
+        <span>I consent to SouthyAI collecting and processing my voice recordings and personal information to build licensed AI speech datasets, in line with POPIA. I can withdraw by emailing support@southyai.co.za.</span></label>
+      <button class="w-full bg-[#0A1931] text-white rounded-full py-3 font-semibold">Create account</button>
+      <p id="j_msg" class="text-[13px]"></p>
+    </form>
+    <form id="loginForm" class="bg-white border border-[#E8E0FF] rounded-[16px] p-6 space-y-3 self-start">
+      <h2 class="font-bold text-[20px]">Log in</h2>
+      <input id="l_email" type="email" placeholder="Email" autocomplete="email" class="w-full border border-[#E8E0FF] rounded-lg p-3" required>
+      <input id="l_pw" type="password" placeholder="Password" autocomplete="current-password" class="w-full border border-[#E8E0FF] rounded-lg p-3" required>
+      <button class="w-full bg-white border border-[#0A1931] text-[#0A1931] rounded-full py-3 font-semibold">Log in</button>
+      <p id="l_msg" class="text-[13px]"></p>
+    </form>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="app" hidden>
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <h1 class="text-[32px] font-bold tracking-tight">Hi <span id="u_name"></span> 👋</h1>
+    <button id="logout" class="text-[13px] font-semibold text-[#6B7280] underline">Log out</button>
+  </div>
+  <div id="banner" class="mt-4 rounded-[12px] p-4 text-[14px]"></div>
+
+  <div class="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3" id="stats"></div>
+
+  <div class="mt-8 grid md:grid-cols-3 gap-6">
+    <div class="md:col-span-2 bg-white border border-[#E8E0FF] rounded-[16px] p-6">
+      <h2 class="font-bold text-[20px]">Record</h2>
+      <div id="catTabs" class="mt-4 flex flex-wrap gap-2"></div>
+      <div class="mt-3"><label class="text-[13px] font-semibold">Language</label>
+        <select id="langSel" class="ml-2 border border-[#E8E0FF] rounded-lg p-2"></select></div>
+      <div id="closedNote" class="mt-4 hidden text-[13px] bg-[#FEF3C7] text-[#92400E] rounded-lg p-3">This category is coming soon. You can read the scripts, but recording opens later.</div>
+      <div id="script" class="mt-5 min-h-[96px] text-[22px] leading-snug font-semibold bg-[#F8F5FF] rounded-[12px] p-5"></div>
+      <div id="recCtl" class="mt-4 flex flex-wrap items-center gap-3">
+        <button id="btnRec" class="bg-[#0A1931] text-white rounded-full px-6 py-3 font-semibold">🎙️ Start recording</button>
+        <button id="btnStop" class="bg-[#DC2626] text-white rounded-full px-6 py-3 font-semibold hidden">⏹ Stop <span id="tm">0.0</span>s</button>
+        <button id="btnSkip" class="text-[13px] font-semibold text-[#6B7280] underline">Skip script</button>
+      </div>
+      <div id="review" class="mt-4 hidden">
+        <audio id="prev" controls class="w-full"></audio>
+        <div class="mt-3 flex gap-3"><button id="btnSend" class="bg-[#16A34A] text-white rounded-full px-6 py-3 font-semibold">Submit recording</button>
+        <button id="btnRedo" class="bg-white border border-[#E8E0FF] rounded-full px-6 py-3 font-semibold">Re-record</button></div>
+      </div>
+      <p id="recMsg" class="mt-3 text-[13px]"></p>
+      <p class="mt-4 text-[12px] text-[#6B7280]">Tips: quiet room, phone about a hand-width from your mouth, speak naturally in your own accent. Read the script as written.</p>
+    </div>
+    <div class="space-y-6">
+      <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6"><h2 class="font-bold text-[18px]">Refer a friend</h2>
+        <p class="text-[13px] text-[#6B7280] mt-2">Share your link. Our team sees how many people you referred.</p>
+        <input id="refLink" readonly class="mt-3 w-full border border-[#E8E0FF] rounded-lg p-2 text-[12px]"><button id="copyRef" class="mt-2 text-[13px] font-semibold text-[#A85CF7]">Copy link</button></div>
+      <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6 text-[13px] text-[#6B7280]"><h2 class="font-bold text-[18px] text-[#0A1931]">How you get paid</h2>
+        <p class="mt-2">Approved recordings are paid via PayPal every 7 days to <strong id="ppMail"></strong>. Rejected recordings are not paid.</p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LANGS = ['isiZulu','isiXhosa','Afrikaans','English','Sepedi','Sesotho','Setswana','siSwati','Tshivenda','isiNdebele','Xitsonga'];
+const REF = new URLSearchParams(location.search).get('ref') || '';
+const rand = c => 'R' + (c / 100).toFixed(2);
+async function api(path, opts) {
+  const r = await fetch(path, opts); let d = null; try { d = await r.json(); } catch (e) {}
+  if (!r.ok) { const e = new Error((d && d.error) || 'Something went wrong'); e.status = r.status; throw e; }
+  return d;
+}
+const post = (p, b) => api(p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) });
+const say = (id, m, bad) => { const el = $(id); el.textContent = m; el.className = 'text-[13px] ' + (bad ? 'text-[#DC2626]' : 'text-[#16A34A]'); };
+
+$('j_langs').innerHTML = LANGS.map(l => '<label class="text-[13px] border border-[#E8E0FF] rounded-full px-3 py-1 cursor-pointer"><input type="checkbox" value="' + l + '" class="mr-1">' + l + '</label>').join('');
+
+$('joinForm').onsubmit = async e => {
+  e.preventDefault();
+  try {
+    await post('/api/auth/register', { name: $('j_name').value, email: $('j_email').value, paypal_email: $('j_paypal').value, password: $('j_pw').value,
+      languages: [...document.querySelectorAll('#j_langs input:checked')].map(i => i.value), consent: $('j_consent').checked, ref: REF });
+    init();
+  } catch (err) { say('j_msg', err.message, true); }
+};
+$('loginForm').onsubmit = async e => {
+  e.preventDefault();
+  try { await post('/api/auth/login', { email: $('l_email').value, password: $('l_pw').value }); init(); }
+  catch (err) { say('l_msg', err.message, true); }
+};
+$('logout').onclick = async () => { await post('/api/auth/logout'); location.reload(); };
+
+let ME = null, cat = null, queue = [], cur = null, blob = null, dur = 0, rec = null, stream = null, chunks = [], t0 = 0, tick = null;
+
+async function init() {
+  try { ME = await api('/api/auth/me'); } catch (e) { $('auth').hidden = false; $('app').hidden = true; return; }
+  $('auth').hidden = true; $('app').hidden = false; render();
+}
+
+function render() {
+  const u = ME.user, s = ME.stats;
+  $('u_name').textContent = u.name.split(' ')[0];
+  const msgs = {
+    applied: ['bg-[#FEF3C7] text-[#92400E]', 'Application received. Next step: email support@southyai.co.za to book your induction and sign the freelancer contract. You can start recording once our team activates your account.'],
+    approved: ['bg-[#DBEAFE] text-[#1E40AF]', 'You are approved. Contact support@southyai.co.za for your induction and to sign your freelancer contract. Recording unlocks once your account is activated.'],
+    active: ['bg-[#DCFCE7] text-[#166534]', 'You are active. Pick an open category below and start recording.'],
+    suspended: ['bg-[#FEE2E2] text-[#991B1B]', 'Your account is paused. Please contact support@southyai.co.za.']
+  }[u.status];
+  $('banner').className = 'mt-4 rounded-[12px] p-4 text-[14px] ' + msgs[0]; $('banner').textContent = msgs[1];
+  $('stats').innerHTML = [['Pending', s.pending], ['Approved', s.approved], ['Rejected', s.rejected], ['Owed to you', rand(s.owed_cents)], ['Paid so far', rand(s.paid_cents)]]
+    .map(x => '<div class="bg-white border border-[#E8E0FF] rounded-[12px] p-4"><div class="text-[12px] text-[#6B7280]">' + x[0] + '</div><div class="text-[22px] font-bold">' + x[1] + '</div></div>').join('');
+  $('refLink').value = location.origin + '/contribute.html?ref=' + u.referral_code;
+  $('copyRef').onclick = () => { navigator.clipboard && navigator.clipboard.writeText($('refLink').value); $('copyRef').textContent = 'Copied!'; };
+  $('ppMail').textContent = u.paypal_email;
+  $('langSel').innerHTML = u.languages.map(l => '<option>' + esc(l) + '</option>').join('');
+  $('langSel').onchange = loadScripts;
+  $('catTabs').innerHTML = ME.categories.map(c => '<button data-k="' + c.key + '" class="catb text-[13px] font-semibold rounded-full px-4 py-2 border ' + (c.open ? 'border-[#0A1931]' : 'border-[#E8E0FF] text-[#6B7280]') + '">' + esc(c.label) + (c.open ? '' : ' • coming soon') + '</button>').join('');
+  document.querySelectorAll('.catb').forEach(b => b.onclick = () => { cat = b.dataset.k; loadScripts(); });
+  if (!cat) cat = (ME.categories.find(c => c.open) || ME.categories[0]).key;
+  loadScripts();
+}
+
+async function loadScripts() {
+  resetRec();
+  document.querySelectorAll('.catb').forEach(b => { const on = b.dataset.k === cat; b.classList.toggle('bg-[#0A1931]', on); b.classList.toggle('text-white', on); });
+  try {
+    const d = await api('/api/contribute/prompts?category=' + encodeURIComponent(cat) + '&language=' + encodeURIComponent($('langSel').value));
+    queue = d.prompts; cur = queue[0] || null;
+    const canRec = d.open && ME.user.status === 'active';
+    $('closedNote').classList.toggle('hidden', d.open);
+    $('recCtl').classList.toggle('hidden', !canRec || !cur);
+    $('script').textContent = cur ? cur.text : 'No scripts left in this category and language right now. Check back soon.';
+    if (!d.open && queue.length > 1) $('script').innerHTML = queue.map(p => '<p class="text-[16px] font-medium mb-2">• ' + esc(p.text) + '</p>').join('');
+    if (d.open && ME.user.status !== 'active') say('recMsg', 'Recording unlocks after induction and contract signing (see the message above).', true);
+  } catch (e) { say('recMsg', e.message, true); }
+}
+
+function resetRec() { clearInterval(tick); if (stream) stream.getTracks().forEach(t => t.stop()); blob = null; $('review').classList.add('hidden'); $('btnStop').classList.add('hidden'); $('btnRec').classList.remove('hidden'); $('recMsg').textContent = ''; }
+
+$('btnRec').onclick = async () => {
+  if (!navigator.mediaDevices || !window.MediaRecorder) return say('recMsg', 'This browser cannot record audio. Try Chrome or Safari.', true);
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { return say('recMsg', 'Microphone is blocked. Allow mic access for this site and try again.', true); }
+  const mt = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+  rec = new MediaRecorder(stream, mt ? { mimeType: mt } : undefined); chunks = [];
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  rec.onstop = () => {
+    stream.getTracks().forEach(t => t.stop());
+    blob = new Blob(chunks, { type: rec.mimeType || mt || 'audio/webm' }); dur = (Date.now() - t0) / 1000;
+    $('prev').src = URL.createObjectURL(blob); $('review').classList.remove('hidden'); $('btnStop').classList.add('hidden');
+    if (dur < 1.5) say('recMsg', 'That was very short. Re-record and read the whole script.', true);
+  };
+  rec.start(); t0 = Date.now(); $('recMsg').textContent = '';
+  $('btnRec').classList.add('hidden'); $('btnStop').classList.remove('hidden');
+  tick = setInterval(() => { const s = (Date.now() - t0) / 1000; $('tm').textContent = s.toFixed(1); if (s >= 60) $('btnStop').click(); }, 100);
+};
+$('btnStop').onclick = () => { clearInterval(tick); rec && rec.state !== 'inactive' && rec.stop(); };
+$('btnRedo').onclick = () => { resetRec(); };
+$('btnSkip').onclick = () => { queue.shift(); cur = queue[0] || null; resetRec(); $('script').textContent = cur ? cur.text : 'No more scripts for now.'; if (!cur) $('recCtl').classList.add('hidden'); };
+$('btnSend').onclick = async () => {
+  if (!blob || !cur) return; $('btnSend').disabled = true; say('recMsg', 'Uploading...');
+  const f = new FormData(); f.append('audio', blob, 'recording'); f.append('prompt_id', cur.id); f.append('duration', dur.toFixed(2));
+  try {
+    await api('/api/contribute/upload', { method: 'POST', body: f });
+    ME = await api('/api/auth/me'); render(); say('recMsg', 'Submitted! It will be reviewed before it counts toward your earnings.');
+  } catch (e) { say('recMsg', e.message, true); }
+  $('btnSend').disabled = false;
+};
+init();
+</script></body></html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Contributors admin | SouthyAI</title>
+<style>
+  body { font-family: -apple-system, Inter, sans-serif; max-width: 980px; margin: 30px auto; padding: 0 16px; color: #0A1931; background: #fafafa; }
+  h2 { margin-top: 36px; } input, select, textarea, button { padding: 9px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; }
+  button { background: #0A1931; color: #fff; border: 0; cursor: pointer; font-weight: 600; } button.alt { background: #fff; color: #0A1931; border: 1px solid #0A1931; }
+  button.bad { background: #dc2626; } table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; } td, th { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 14px; margin: 10px 0; } .err { color: #dc2626; } .ok { color: #16a34a; } small { color: #666; }
+  nav a { margin-right: 14px; } textarea { width: 100%; min-height: 110px; }
+</style></head><body>
+<h1>Contributors admin</h1>
+<nav><a href="admin.html">Voice sales admin</a><a href="contribute.html">Contributor site</a></nav>
+<div class="card"><input id="key" type="password" placeholder="Admin key" style="width:260px"> <button id="go">Unlock</button> <span id="st"></span></div>
+
+<div id="app" hidden>
+  <h2>1. Settings</h2>
+  <div class="card">
+    <p><b>Open for recording (max 2):</b> <span id="openCats"></span></p>
+    <p><b>Pay per approved recording (R):</b> <input id="rate" type="number" step="0.01" min="0" style="width:90px"> <button id="saveSet">Save settings</button> <span id="setMsg"></span></p>
+  </div>
+
+  <h2>2. Review recordings</h2>
+  <div id="queue"><small>Loading...</small></div>
+
+  <h2>3. Payouts (PayPal)</h2>
+  <p><small>Pay the person on PayPal first, then press "Mark paid".</small></p>
+  <div id="payouts"></div>
+
+  <h2>4. Contributors</h2>
+  <p><small>Applied → Approved → <b>Active</b> once induction is done and the freelancer contract is signed. Only Active people can record. Referrals = people who joined with their link.</small></p>
+  <div id="users"></div>
+
+  <h2>5. Add scripts (prompts)</h2>
+  <div class="card">
+    <select id="pCat"></select> <select id="pLang"></select>
+    <textarea id="pText" placeholder="One script per line"></textarea>
+    <button id="addP">Add scripts</button> <span id="pMsg"></span>
+    <div id="pCounts" style="margin-top:10px"><small></small></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let key = sessionStorage.getItem('ck') || ''; $('key').value = key;
+const H = () => ({ 'Content-Type': 'application/json', 'x-admin-key': $('key').value });
+async function api(p, o = {}) {
+  const r = await fetch(p, { ...o, headers: H() }); let d = null; try { d = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error((d && d.error) || 'Request failed (' + r.status + ')'); return d;
+}
+const post = (p, b) => api(p, { method: 'POST', body: JSON.stringify(b) });
+const rand = c => 'R' + ((c || 0) / 100).toFixed(2);
+
+async function loadConfig() {
+  const c = await api('/api/admin/config');
+  $('openCats').innerHTML = c.categories.map(x => `<label style="margin-right:10px"><input type="checkbox" class="oc" value="${x.key}" ${c.open_categories.includes(x.key) ? 'checked' : ''}> ${esc(x.label)}</label>`).join('');
+  $('rate').value = (c.rate_cents / 100).toFixed(2);
+  $('pCat').innerHTML = c.categories.map(x => `<option value="${x.key}">${esc(x.label)}</option>`).join('');
+  $('pLang').innerHTML = c.languages.map(x => `<option>${esc(x)}</option>`).join('');
+  $('pCounts').innerHTML = '<small>Scripts loaded: ' + (c.prompt_counts.map(x => esc(x.category) + ' / ' + esc(x.language) + ': ' + x.n).join(' • ') || 'none yet') + '</small>';
+}
+$('saveSet').onclick = async () => {
+  try { const open = [...document.querySelectorAll('.oc:checked')].map(i => i.value);
+    await post('/api/admin/config', { open_categories: open, rate_cents: Math.round(parseFloat($('rate').value || '0') * 100) });
+    $('setMsg').className = 'ok'; $('setMsg').textContent = 'Saved'; } catch (e) { $('setMsg').className = 'err'; $('setMsg').textContent = e.message; }
+};
+$('addP').onclick = async () => {
+  try { const d = await post('/api/admin/config', { prompts: { category: $('pCat').value, language: $('pLang').value, text: $('pText').value } });
+    $('pMsg').className = 'ok'; $('pMsg').textContent = d.prompts_added + ' scripts added'; $('pText').value = ''; loadConfig(); } catch (e) { $('pMsg').className = 'err'; $('pMsg').textContent = e.message; }
+};
+
+async function loadQueue() {
+  const rows = await api('/api/admin/recordings?status=pending');
+  $('queue').innerHTML = rows.length ? rows.map(r => `<div class="card" data-id="${esc(r.id)}">
+      <b>${esc(r.contributor)}</b> <small>${esc(r.email)} • ${esc(r.category)} • ${esc(r.language)} • ${Number(r.duration_sec).toFixed(1)}s</small>
+      <p style="font-size:16px;margin:8px 0">"${esc(r.script)}"</p>
+      <div class="player"><button class="alt play">▶ Load audio</button></div>
+      <p><button class="approve">Approve</button> <button class="bad reject">Reject</button></p></div>`).join('') : '<small>Nothing waiting for review 🎉</small>';
+}
+$('queue').addEventListener('click', async e => {
+  const card = e.target.closest('.card'); if (!card) return; const id = card.dataset.id;
+  try {
+    if (e.target.classList.contains('play')) {
+      const r = await fetch('/api/admin/recordings?audio=' + encodeURIComponent(id), { headers: { 'x-admin-key': $('key').value } });
+      if (!r.ok) throw new Error('Could not load audio');
+      card.querySelector('.player').innerHTML = '<audio controls autoplay src="' + URL.createObjectURL(await r.blob()) + '"></audio>';
+    } else if (e.target.classList.contains('approve')) { await post('/api/admin/recordings', { id, action: 'approve' }); refreshAll(); }
+    else if (e.target.classList.contains('reject')) { const reason = prompt('Reason (shown to nobody, kept for your records):', 'Background noise'); if (reason === null) return; await post('/api/admin/recordings', { id, action: 'reject', reason }); refreshAll(); }
+  } catch (err) { alert(err.message); }
+});
+
+async function loadPayouts() {
+  const rows = await api('/api/admin/payouts');
+  $('payouts').innerHTML = rows.length ? '<table><tr><th>Name</th><th>PayPal</th><th>Recordings</th><th>Owed</th><th>Referrals</th><th>Oldest approved</th><th></th></tr>' +
+    rows.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.paypal_email)}</td><td>${r.recordings}</td><td><b>${rand(r.owed_cents)}</b></td><td>${r.referrals}</td><td>${esc(r.oldest_approved)}</td><td><button data-u="${esc(r.user_id)}" class="pay">Mark paid</button></td></tr>`).join('') + '</table>' : '<small>Nobody is owed anything right now.</small>';
+}
+$('payouts').addEventListener('click', async e => {
+  const b = e.target.closest('.pay'); if (!b || !confirm('Only press OK after you have paid them on PayPal.')) return;
+  try { await post('/api/admin/payouts', { user_id: b.dataset.u }); refreshAll(); } catch (err) { alert(err.message); }
+});
+
+async function loadUsers() {
+  const rows = await api('/api/admin/users');
+  $('users').innerHTML = rows.length ? '<table><tr><th>Name / email</th><th>Languages</th><th>PayPal</th><th>Status</th><th>Approved</th><th>Pending</th><th>Referrals</th><th>Joined</th></tr>' +
+    rows.map(u => `<tr><td><b>${esc(u.name)}</b><br><small>${esc(u.email)}</small></td><td>${esc(u.languages)}</td><td>${esc(u.paypal_email)}</td>
+      <td><select data-u="${esc(u.id)}" class="st">${['applied', 'approved', 'active', 'suspended'].map(s => `<option ${s === u.status ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
+      <td>${u.approved}</td><td>${u.pending}</td><td><b>${u.referrals}</b></td><td><small>${esc(u.created_at)}</small></td></tr>`).join('') + '</table>' : '<small>No contributors yet.</small>';
+}
+$('users').addEventListener('change', async e => {
+  if (!e.target.classList.contains('st')) return;
+  try { await post('/api/admin/users', { id: e.target.dataset.u, status: e.target.value }); } catch (err) { alert(err.message); loadUsers(); }
+});
+
+async function refreshAll() { await Promise.all([loadQueue(), loadPayouts(), loadUsers(), loadConfig()]); }
+$('go').onclick = async () => {
+  try { await refreshAll(); sessionStorage.setItem('ck', $('key').value); $('app').hidden = false; $('st').className = 'ok'; $('st').textContent = 'Unlocked'; }
+  catch (e) { $('st').className = 'err'; $('st').textContent = e.message; }
+};
+if (key) $('go').click();
+</script></body></html>

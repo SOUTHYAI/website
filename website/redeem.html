@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Redeem your SOUTHYAI voice license</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; }
+  label { display: block; margin-top: 14px; font-weight: 600; }
+  input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+  button { margin-top: 20px; padding: 10px 16px; background: #111; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+  #result { margin-top: 16px; padding: 12px; border-radius: 6px; }
+  .err { background: #ffd7d7; }
+  .payinfo { background: #f2f2f2; padding: 12px; border-radius: 6px; margin-top: 16px; font-size: 14px; }
+</style>
+</head>
+<body>
+  <h2>Redeem your voice license</h2>
+  <p>Enter the email and PIN from your confirmation email. The PIN only works once.</p>
+
+  <label>Email</label>
+  <input type="email" id="email" placeholder="you@example.com">
+
+  <label>PIN</label>
+  <input type="text" id="pin" placeholder="8-character PIN" autocapitalize="characters" autocomplete="off">
+
+  <button onclick="redeem()">Get my file</button>
+
+  <div id="result"></div>
+
+  <div class="payinfo">
+    Haven't paid yet? Send your payment via PayShap to <strong>+27-676861140@CAPITEC</strong>,
+    using your email as the reference, then email your proof of payment to
+    <strong>support@southyai.co.za</strong> to get your PIN.
+  </div>
+
+<script>
+  const show = (cls, msg) => { const r = document.getElementById('result'); r.className = cls; r.textContent = msg; };
+
+  async function redeem() {
+    const email = document.getElementById('email').value.trim();
+    const pin = document.getElementById('pin').value.trim();
+    const btn = document.querySelector('button');
+
+    if (!email || !pin) return show('err', 'enter both your email and PIN');
+
+    btn.disabled = true;
+    show('', 'checking...');
+    try {
+      const r = await fetch('/api/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, pin })
+      });
+      if (!r.ok) {
+        let msg = 'Something went wrong. Please try again.';
+        try { msg = (await r.json()).error || msg; } catch (e) {}
+        throw new Error(msg);
+      }
+      const m = (r.headers.get('content-disposition') || '').match(/filename="([^"]+)"/);
+      const blob = await r.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = m ? m[1] : 'voice-license.wav';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      show('', 'downloaded! this PIN is now used up.');
+    } catch (err) {
+      show('err', 'error: ' + err.message);
+    }
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>

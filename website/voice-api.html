@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SouthyAI Voice API Library</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:Inter,sans-serif;background:#F8F5FF}</style>
+</head>
+<body class="bg-[#F8F5FF] text-[#0A1931]">
+
+<!-- SINGLE HEADER - matches your original white header -->
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-[#E8E0FF] h-[64px] flex items-center">
+  <div class="max-w-[1400px] mx-auto w-full px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-[#0A1931] rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
+      <span class="font-bold tracking-tight">SOUTHYAI</span>
+      <span class="ml-2 text-[11px] font-semibold tracking-widest text-[#A85CF7] bg-[#F5F1FF] px-3 py-1 rounded-full border border-[#E8E0FF]">DURBAN • SA</span>
+      <span class="ml-2 text-[10px] font-bold bg-black text-white px-2 py-1 rounded-full">API LIVE</span>
+    </div>
+    <nav class="hidden md:flex items-center gap-6 text-[14px] font-medium">
+      <a href="index.html" class="text-[#6B7280] hover:text-[#0A1931]">Home</a>
+      <a href="voice-api.html" class="bg-[#0A1931] text-white px-4 py-2 rounded-full">API</a>
+      <a href="index.html#team" class="text-[#6B7280] hover:text-[#0A1931]">Team</a>
+      <a href="index.html#contact" class="text-[#6B7280] hover:text-[#0A1931]">Contact</a>
+    </nav>
+    <a href="mailto:support@southyai.co.za" class="hidden md:block bg-[#0A1931] text-white text-[13px] font-semibold px-5 py-2.5 rounded-full">support@southyai.co.za</a>
+  </div>
+</header>
+
+<!-- HERO like ElevenLabs -->
+<div class="max-w-[1400px] mx-auto px-6 py-16">
+  <div class="inline-flex items-center gap-2 bg-white border border-[#E8E0FF] px-4 py-1.5 rounded-full text-[12px] font-semibold tracking-widest text-[#A85CF7] mb-6">
+    <span class="w-2 h-2 bg-[#22C55E] rounded-full"></span> API PLATFORM • OPERATIONAL
+  </div>
+  <h1 class="text-[48px] md:text-[64px] font-bold leading-[0.95] tracking-tight">API built for<br><span class="text-[#A85CF7]">South African voices.</span></h1>
+  <p class="mt-6 text-[18px] text-[#6B7280] max-w-[640px]">One API for voice discovery, licensing, and delivery. R2 + D1 powered. Like ElevenLabs, but for Zulu, Xhosa, Afrikaans, and more.</p>
+  
+  <div class="mt-10 flex gap-3">
+    <button onclick="testAPI()" class="bg-[#0A1931] text-white px-6 py-3 rounded-full text-[14px] font-semibold">Test API →</button>
+    <a href="#endpoints" class="bg-white border border-[#E8E0FF] px-6 py-3 rounded-full text-[14px] font-semibold">View Endpoints</a>
+  </div>
+  <div id="testResult" class="mt-4 text-[13px] text-[#6B7280]"></div>
+</div>
+
+<!-- API CARDS - listing everything on landing page like ElevenLabs does -->
+<div id="endpoints" class="max-w-[1400px] mx-auto px-6 pb-20">
+  <div class="grid md:grid-cols-3 gap-4">
+
+    <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6">
+      <div class="flex items-center gap-2 mb-3"><span class="bg-[#DCFCE7] text-[#166534] text-[11px] font-bold px-2 py-1 rounded">GET</span><code class="text-[13px] font-mono">/api/voices</code></div>
+      <h3 class="font-semibold">List all voices</h3>
+      <p class="text-[13px] text-[#6B7280] mt-2">Filter by language, accent, gender. Returns licensed South African voices.</p>
+      <pre class="mt-4 bg-[#F8F5FF] border border-[#E8E0FF] rounded-lg p-3 text-[11px] overflow-auto">curl https://southyai.co.za/api/voices</pre>
+      <a href="/api/voices" target="_blank" class="mt-3 inline-block text-[12px] font-semibold text-[#A85CF7]">Try it →</a>
+    </div>
+
+    <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6">
+      <div class="flex items-center gap-2 mb-3"><span class="bg-[#DCFCE7] text-[#166534] text-[11px] font-bold px-2 py-1 rounded">GET</span><code class="text-[13px] font-mono">/api/voices/:id</code></div>
+      <h3 class="font-semibold">Stream preview + metadata</h3>
+      <p class="text-[13px] text-[#6B7280] mt-2">Get voice details, preview URL, language, accent, pricing.</p>
+      <pre class="mt-4 bg-[#F8F5FF] border border-[#E8E0FF] rounded-lg p-3 text-[11px] overflow-auto">curl https://southyai.co.za/api/voices/voice-thandi-sesotho</pre>
+      <a href="/api/voices/voice-thandi-sesotho" target="_blank" class="mt-3 inline-block text-[12px] font-semibold text-[#A85CF7]">Try it →</a>
+    </div>
+
+    <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6">
+      <div class="flex items-center gap-2 mb-3"><span class="bg-[#FEF3C7] text-[#92400E] text-[11px] font-bold px-2 py-1 rounded">ADMIN</span><code class="text-[13px] font-mono">/api/admin/confirm-payment</code></div>
+      <h3 class="font-semibold">Confirm payment + issue PIN</h3>
+      <p class="text-[13px] text-[#6B7280] mt-2">Customer pays by PayShap/EFT. Once the money lands, we confirm and a one-time PIN is emailed.</p>
+      <pre class="mt-4 bg-[#F8F5FF] border border-[#E8E0FF] rounded-lg p-3 text-[11px] overflow-auto">{ "voice_id": "voice-imizamo-xhosa", "customer_email": "you@company.com" }</pre>
+    </div>
+
+    <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6">
+      <div class="flex items-center gap-2 mb-3"><span class="bg-[#DBEAFE] text-[#1E40AF] text-[11px] font-bold px-2 py-1 rounded">POST</span><code class="text-[13px] font-mono">/api/redeem</code></div>
+      <h3 class="font-semibold">Redeem PIN + download</h3>
+      <p class="text-[13px] text-[#6B7280] mt-2">Trade your email + PIN for the licensed file. Each PIN works once.</p>
+      <pre class="mt-4 bg-[#F8F5FF] border border-[#E8E0FF] rounded-lg p-3 text-[11px] overflow-auto">{ "email": "you@company.com", "pin": "K7M2QX9A" }</pre>
+    </div>
+
+    <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6">
+      <div class="flex items-center gap-2 mb-3"><span class="bg-[#DBEAFE] text-[#1E40AF] text-[11px] font-bold px-2 py-1 rounded">POST</span><code class="text-[13px] font-mono">/api/redeem</code></div>
+      <h3 class="font-semibold">Secure R2 download</h3>
+      <p class="text-[13px] text-[#6B7280] mt-2">Validates your PIN, then streams the licensed audio straight from private R2 storage.</p>
+      <pre class="mt-4 bg-[#F8F5FF] border border-[#E8E0FF] rounded-lg p-3 text-[11px] overflow-auto">curl -X POST /api/redeem -d '{"email":"..","pin":".."}' -o voice.wav</pre>
+    </div>
+
+    <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6">
+      <div class="flex items-center gap-2 mb-3"><span class="bg-[#FEF3C7] text-[#92400E] text-[11px] font-bold px-2 py-1 rounded">ADMIN</span><code class="text-[13px] font-mono">/api/admin/*</code></div>
+      <h3 class="font-semibold">Manage catalog</h3>
+      <p class="text-[13px] text-[#6B7280] mt-2">/admin/voices + /admin/licenses — CRUD for team.</p>
+      <pre class="mt-4 bg-[#F8F5FF] border border-[#E8E0FF] rounded-lg p-3 text-[11px] overflow-auto">Requires admin token header</pre>
+    </div>
+
+  </div>
+
+
+  <!-- LIVE VOICE CATALOGUE (pulled from /api/voices) -->
+  <div class="mt-16">
+    <h2 class="text-[24px] font-bold">Licensed voices</h2>
+    <p class="text-[13px] text-[#6B7280] mt-2 max-w-[640px]">Preview a voice, then pay via PayShap to <strong>+27-676861140@CAPITEC</strong> using your email as the reference. Email proof of payment to <a class="text-[#A85CF7] font-semibold" href="mailto:support@southyai.co.za">support@southyai.co.za</a> and your one-time PIN is emailed to you. <a class="text-[#A85CF7] font-semibold" href="redeem.html">Redeem a PIN →</a></p>
+    <div id="voiceList" class="grid md:grid-cols-3 gap-4 mt-6"><div class="text-[13px] text-[#6B7280]">Loading voices...</div></div>
+  </div>
+
+  <!-- CODE EXAMPLES like ElevenLabs docs -->
+  <div class="mt-16 bg-[#0A1931] rounded-[24px] p-8 text-white">
+    <h2 class="text-[24px] font-bold">Quick start - JavaScript</h2>
+    <div class="mt-6 grid md:grid-cols-2 gap-6">
+      <pre class="bg-white/10 border border-white/10 rounded-xl p-4 text-[12px] overflow-auto">const res = await fetch('/api/voices');
+const { voices } = await res.json();
+console.log(voices[0].name, voices[0].language);</pre>
+      <pre class="bg-white/10 border border-white/10 rounded-xl p-4 text-[12px] overflow-auto">const file = await fetch('/api/redeem', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, pin })
+});
+const audio = await file.blob(); // your licensed voice</pre>
+    </div>
+    <p class="mt-6 text-[13px] text-white/60">Python + cURL examples in docs. Full OpenAPI spec at /api/openapi.json (coming)</p>
+  </div>
+
+</div>
+
+<script>
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function loadVoices(){
+  const box = document.getElementById('voiceList');
+  try{
+    const res = await fetch('/api/voices');
+    if(!res.ok) throw new Error('bad status');
+    const { voices = [] } = await res.json();
+    if(!voices.length){ box.innerHTML = '<div class="text-[13px] text-[#6B7280]">Voices coming soon.</div>'; return; }
+    box.innerHTML = voices.map(v => `
+      <div class="bg-white border border-[#E8E0FF] rounded-[16px] p-6">
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="font-semibold">${esc(v.name)}</h3>
+          <span class="text-[11px] font-bold px-2 py-1 rounded bg-[#F5F1FF] text-[#A85CF7]">${esc(v.language)}</span>
+        </div>
+        <p class="text-[13px] text-[#6B7280] mt-2">${esc(v.category || 'general')}${v.accent ? ' • ' + esc(v.accent) : ''}</p>
+        ${v.description ? `<p class="text-[13px] text-[#6B7280] mt-1">${esc(v.description)}</p>` : ''}
+        ${v.preview_url ? `<audio controls preload="none" class="mt-3 w-full" src="${esc(v.preview_url)}"></audio>` : ''}
+        <div class="mt-3 flex items-center justify-between"><strong>${v.price_cents ? 'R' + (v.price_cents/100).toFixed(2) : 'Contact for pricing'}</strong><code class="text-[11px] text-[#6B7280]">${esc(v.id)}</code></div>
+      </div>`).join('');
+  }catch(e){
+    box.innerHTML = '<div class="text-[13px] text-[#6B7280]">Could not load voices right now.</div>';
+  }
+}
+
+async function testAPI(){
+  const el = document.getElementById('testResult');
+  el.textContent = 'Testing /api/voices...';
+  try{
+    const res = await fetch('/api/voices');
+    const data = await res.json();
+    if(res.ok){
+      el.innerHTML = `<span class="text-[#16A34A]">✅ API LIVE - Found ${(data.voices || []).length} voices</span>`;
+    } else {
+      el.innerHTML = `<span class="text-[#A85CF7]">API replied with an error: ${esc(data.error || res.status)}</span>`;
+    }
+  }catch(e){
+    el.innerHTML = `<span class="text-[#A85CF7]">Could not reach the API from this page</span>`;
+  }
+}
+loadVoices();
+</script>
+
+</body>
+</html>
